@@ -75,7 +75,7 @@ async def read_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     return user
 
-@app.delete('/users/{user_id}')
+@app.delete('/delete/{user_id}')
 async def delete_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
