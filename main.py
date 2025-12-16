@@ -12,7 +12,7 @@ from passlib.hash import bcrypt
 app = FastAPI()
 
 origins = [
-    'http://localhost:5173/'
+    'http://localhost:5173'
 ]
 
 app.add_middleware(
