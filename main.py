@@ -39,7 +39,7 @@ async def add(username: str = Form(...),password: str = Form(...),date_born: str
         f.write(await file.read())
     
      date_reg = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-     date_borns = datetime.strptime(date_born, '%d.%m.%Y').date()
+     date_borns = datetime.strptime(date_born, '%Y-%m-%d').date()
      today = date.today()
      age = today.year - date_borns.year - ((today.month, today.day) < (date_borns.month, date_borns.day))
      user_db = User(username=username,password=hash_password(password), file=file.filename, date_reg=date_reg, date_born=date_borns, age=age, sex=sex)
@@ -85,4 +85,4 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
         )
     db.delete(user)
     db.commit()
-    return {'message': f'User {user_id} is deleted'}
+    return user_id
