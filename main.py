@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, File, UploadFile, Form, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -22,6 +23,8 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*']
 )
+
+app.mount('/upload', StaticFiles(directory='upload'), name='upload')
 
 UPLOAD_DIR = 'upload'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -86,3 +89,11 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return user_id
+
+@app.patch('/patch/{user_id}')
+async def patch_user(user_id: int, new_usernane: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.username = new_usernane
+        
+    return user

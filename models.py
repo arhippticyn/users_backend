@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     date_reg: str
     date_born: date
     sex: str 
+    age: int
     
 class UserCreate(UserBase):
     password: str
