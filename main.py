@@ -3,8 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from models import UserBase, UserResponse
-from db import get_db, User
+from models import UserBase, UserResponse, UserPatch
+from db import get_db, User, Files
 import os
 from PIL import Image
 from datetime import datetime, date, timedelta
@@ -91,9 +91,45 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
     return user_id
 
 @app.patch('/patch/{user_id}')
-async def patch_user(user_id: int, new_usernane: str, db: Session = Depends(get_db)):
+async def patch_user(user_id: int, data: UserPatch, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user:
-        user.username = new_usernane
-        
+        user.username = data.newUsername
+    db.commit()
+    db.refresh(user)
     return user
+
+@app.post('/files-add/{user_id}')
+async def add_file(user_id: int,file: UploadFile = File(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        return {"error": "User not found"}
+    
+    
+    file_path = f'upload/{file.filename}'
+    with open(file_path, 'wb') as f:
+        f.write(await file.read())
+        
+    db_file = Files(file=file.filename, owner_id=user_id)
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
+    
+    return db_file
+
+@app.get('/files')
+async def get_files(db: Session = Depends(get_db)):
+    return db.query(Files).all()
+
+@app.get('/files/{files_id}')
+async def get_file(files_id: int, db: Session = Depends(get_db)):
+    user = db.query(Files).filter(Files.id == files_id).first()
+    return user
+
+@app.delete('/files/delete/{files_id}')
+async def delete_file(files_id: int, db: Session = Depends(get_db)):
+    delete_user = db.query(Files).filter(Files.id == files_id).first()
+    db.delete(delete_user)
+    db.commit()
+    return files_id
